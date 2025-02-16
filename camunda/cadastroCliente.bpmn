@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+  xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+  id="Definitions_1"
+  targetNamespace="http://camunda.org/examples">
+
+  <bpmn:process id="cadastroClienteProcess"
+    name="Cadastro de Cliente"
+    isExecutable="true"
+    camunda:historyTimeToLive="180">
+    <!-- Colocamos a documentação aqui, antes dos flowElements -->
+    <bpmn:documentation>Processo de Cadastro de Cliente</bpmn:documentation>
+
+    <bpmn:startEvent id="StartEvent_1" name="Início Cadastro" />
+    <bpmn:scriptTask id="VerificarRestrições" name="Verificar Restrições" scriptFormat="JavaScript">
+      <bpmn:script><![CDATA[
+        var score = execution.getVariable("score");
+        if (score < 300) {
+          execution.setVariable("restricoesOk", false);
+        } else {
+          execution.setVariable("restricoesOk", true);
+        }
+      ]]></bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:userTask id="AnaliseCompliance" name="Análise de Compliance" camunda:assignee="compliance" />
+    <bpmn:exclusiveGateway id="GatewayAprovado" name="Aprovado?" />
+    <bpmn:endEvent id="EndEvent_Aprovado" name="Cadastro Aprovado" />
+    <bpmn:endEvent id="EndEvent_Reprovado" name="Cadastro Reprovado" />
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="VerificarRestrições" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="VerificarRestrições" targetRef="AnaliseCompliance" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="AnaliseCompliance" targetRef="GatewayAprovado" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="GatewayAprovado" targetRef="EndEvent_Aprovado">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[ ${approved == true} ]]></bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="GatewayAprovado" targetRef="EndEvent_Reprovado">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[ ${approved == false} ]]></bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="cadastroClienteProcess">
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="100" y="100" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="VerificarRestrições_di" bpmnElement="VerificarRestrições">
+        <dc:Bounds x="200" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AnaliseCompliance_di" bpmnElement="AnaliseCompliance">
+        <dc:Bounds x="350" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GatewayAprovado_di" bpmnElement="GatewayAprovado">
+        <dc:Bounds x="500" y="100" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Aprovado_di" bpmnElement="EndEvent_Aprovado">
+        <dc:Bounds x="600" y="60" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Reprovado_di" bpmnElement="EndEvent_Reprovado">
+        <dc:Bounds x="600" y="140" width="36" height="36" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

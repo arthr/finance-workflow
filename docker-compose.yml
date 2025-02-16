@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "4000:3000"  # Mapeia a porta 3000 do container para 4000 no host
+    depends_on:
+      - db
+      - camunda
+    environment:
+      - DB_HOST=db
+      - DB_USER=user
+      - DB_PASS=password
+      - DB_NAME=workflowdb
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+
+  db:
+    image: postgres:13-alpine
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: workflowdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  camunda:
+    image: camunda/camunda-bpm-platform:tomcat-latest
+    ports:
+      - "8080:8080"
+
+volumes:
+  db_data:
