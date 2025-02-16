@@ -9,11 +9,13 @@ Este projeto é uma POC/MVP de um sistema de workflow para Direct Landing (Créd
 - **PostgreSQL:** Banco de dados relacional
 
 ## Estrutura do Projeto
+```
 finance-workflow/
 ├── backend/           # API backend
 ├── frontend/          # Aplicação frontend
 ├── docker-compose.yml # Orquestração dos containers
 └── README.md          # Documentação do projeto
+```
 
 ## Como Executar
 
