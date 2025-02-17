@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+    xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+    xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+    xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+    xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+    id="Definitions_1"
+    targetNamespace="http://camunda.org/examples">
+
+    <bpmn:process id="cadastroAnaliseFormalizacao" name="Cadastro de Cliente" isExecutable="true"
+        camunda:historyTimeToLive="180">
+        <bpmn:documentation>Processo de Cadastro de Cliente para Direct Landing</bpmn:documentation>
+
+        <!-- Passo 1: Início – Prospecção -->
+        <bpmn:startEvent id="StartEvent_1" name="Início - Prospecção" />
+
+        <bpmn:userTask id="Task_Prospect" name="Preencher Dados do Cliente (Gerente Comercial)"
+            camunda:assignee="gerente_comercial" />
+
+        <!-- Passo 2: Upload de Documentos -->
+        <bpmn:userTask id="Task_Upload" name="Upload de Documentos Checklist"
+            camunda:assignee="gerente_comercial" />
+
+        <!-- Passo 3: Análise Básica de Documentos -->
+        <bpmn:userTask id="Task_AnaliseBasica" name="Análise Básica de Documentos"
+            camunda:assignee="credito" />
+
+        <!-- Gateway: Documentos OK? -->
+        <bpmn:exclusiveGateway id="Gateway_AprovacaoBasica" name="Documentos OK?" />
+
+        <!-- Se sim, vai para Pré Comitê -->
+        <bpmn:userTask id="Task_PreComite" name="Pré Comitê" camunda:assignee="credito" />
+
+        <!-- Gateway: Pré Comitê Aprovado? -->
+        <bpmn:exclusiveGateway id="Gateway_PreComite" name="Pré Comitê Aprovado?" />
+
+        <!-- Se sim, encaminha para Comitê -->
+        <bpmn:userTask id="Task_Comite" name="Comitê" camunda:assignee="diretoria" />
+
+        <!-- Gateway: Cadastro Aprovado? -->
+        <bpmn:exclusiveGateway id="Gateway_Comite" name="Cadastro Aprovado?" />
+
+        <!-- Fim: Cadastro Aprovado -->
+        <bpmn:endEvent id="EndEvent_Aprovado" name="Cadastro Aprovado" />
+
+        <!-- Fim: Cadastro Reprovado -->
+        <bpmn:endEvent id="EndEvent_Reprovado" name="Cadastro Reprovado" />
+
+        <!-- Definição das conexões -->
+        <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_Prospect" />
+        <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_Prospect" targetRef="Task_Upload" />
+        <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_Upload" targetRef="Task_AnaliseBasica" />
+        <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_AnaliseBasica"
+            targetRef="Gateway_AprovacaoBasica" />
+        <bpmn:sequenceFlow id="Flow_5" sourceRef="Gateway_AprovacaoBasica"
+            targetRef="Task_PreComite">
+            <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${documentosOk == true}]]></bpmn:conditionExpression>
+        </bpmn:sequenceFlow>
+        <bpmn:sequenceFlow id="Flow_6" sourceRef="Gateway_AprovacaoBasica"
+            targetRef="EndEvent_Reprovado">
+            <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${documentosOk == false}]]></bpmn:conditionExpression>
+        </bpmn:sequenceFlow>
+        <bpmn:sequenceFlow id="Flow_7" sourceRef="Task_PreComite" targetRef="Gateway_PreComite" />
+        <bpmn:sequenceFlow id="Flow_8" sourceRef="Gateway_PreComite" targetRef="Task_Comite">
+            <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${preComiteAprovado == true}]]></bpmn:conditionExpression>
+        </bpmn:sequenceFlow>
+        <bpmn:sequenceFlow id="Flow_9" sourceRef="Gateway_PreComite" targetRef="EndEvent_Reprovado">
+            <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${preComiteAprovado == false}]]></bpmn:conditionExpression>
+        </bpmn:sequenceFlow>
+        <bpmn:sequenceFlow id="Flow_10" sourceRef="Task_Comite" targetRef="Gateway_Comite" />
+        <bpmn:sequenceFlow id="Flow_11" sourceRef="Gateway_Comite" targetRef="EndEvent_Aprovado">
+            <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${cadastroAprovado == true}]]></bpmn:conditionExpression>
+        </bpmn:sequenceFlow>
+        <bpmn:sequenceFlow id="Flow_12" sourceRef="Gateway_Comite" targetRef="EndEvent_Reprovado">
+            <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${cadastroAprovado == false}]]></bpmn:conditionExpression>
+        </bpmn:sequenceFlow>
+    </bpmn:process>
+
+    <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+        <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="cadastroClienteProcess">
+            <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+                <dc:Bounds x="100" y="100" width="36" height="36" />
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Task_Prospect_di" bpmnElement="Task_Prospect">
+                <dc:Bounds x="180" y="80" width="100" height="80" />
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Task_Upload_di" bpmnElement="Task_Upload">
+                <dc:Bounds x="320" y="80" width="100" height="80" />
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Task_AnaliseBasica_di" bpmnElement="Task_AnaliseBasica">
+                <dc:Bounds x="460" y="80" width="100" height="80" />
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Gateway_AprovacaoBasica_di" bpmnElement="Gateway_AprovacaoBasica">
+                <dc:Bounds x="620" y="100" width="36" height="36" />
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Task_PreComite_di" bpmnElement="Task_PreComite">
+                <dc:Bounds x="700" y="80" width="100" height="80" />
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Gateway_PreComite_di" bpmnElement="Gateway_PreComite">
+                <dc:Bounds x="860" y="100" width="36" height="36" />
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Task_Comite_di" bpmnElement="Task_Comite">
+                <dc:Bounds x="940" y="80" width="100" height="80" />
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Gateway_Comite_di" bpmnElement="Gateway_Comite">
+                <dc:Bounds x="1100" y="100" width="36" height="36" />
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="EndEvent_Aprovado_di" bpmnElement="EndEvent_Aprovado">
+                <dc:Bounds x="1180" y="60" width="36" height="36" />
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="EndEvent_Reprovado_di" bpmnElement="EndEvent_Reprovado">
+                <dc:Bounds x="1180" y="140" width="36" height="36" />
+            </bpmndi:BPMNShape>
+
+            <!-- Conexões (sequence flows) -->
+            <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+                <di:waypoint x="136" y="118" />
+                <di:waypoint x="180" y="118" />
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+                <di:waypoint x="280" y="118" />
+                <di:waypoint x="320" y="118" />
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
+                <di:waypoint x="420" y="118" />
+                <di:waypoint x="460" y="118" />
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4">
+                <di:waypoint x="560" y="118" />
+                <di:waypoint x="620" y="118" />
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5">
+                <di:waypoint x="658" y="118" />
+                <di:waypoint x="700" y="118" />
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6">
+                <di:waypoint x="658" y="118" />
+                <di:waypoint x="620" y="140" />
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_7_di" bpmnElement="Flow_7">
+                <di:waypoint x="800" y="118" />
+                <di:waypoint x="860" y="118" />
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_8_di" bpmnElement="Flow_8">
+                <di:waypoint x="896" y="118" />
+                <di:waypoint x="940" y="118" />
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_9_di" bpmnElement="Flow_9">
+                <di:waypoint x="896" y="118" />
+                <di:waypoint x="860" y="140" />
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_10_di" bpmnElement="Flow_10">
+                <di:waypoint x="1040" y="118" />
+                <di:waypoint x="1100" y="118" />
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_11_di" bpmnElement="Flow_11">
+                <di:waypoint x="1136" y="118" />
+                <di:waypoint x="1180" y="78" />
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_12_di" bpmnElement="Flow_12">
+                <di:waypoint x="1136" y="118" />
+                <di:waypoint x="1180" y="158" />
+            </bpmndi:BPMNEdge>
+        </bpmndi:BPMNPlane>
+    </bpmndi:BPMNDiagram>
+</bpmn:definitions>

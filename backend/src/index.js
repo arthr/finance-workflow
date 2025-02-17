@@ -64,6 +64,7 @@ app.get("/hello", async (req, res) => {
 // 1. Iniciar o processo de cadastro de cliente
 app.post("/start-cadastro", async (req, res) => {
   try {
+    // Recebe as variáveis do fluxo (pode incluir nome, CNPJ, representante, contato, etc.)
     const { nome, score } = req.body;
     // Inicia o processo "cadastroClienteProcess" no Camunda
     const response = await axios.post(
@@ -72,6 +73,32 @@ app.post("/start-cadastro", async (req, res) => {
         variables: {
           nome: { value: nome, type: "String" },
           score: { value: score, type: "Integer" },
+        },
+      }
+    );
+    res.json({
+      processInstanceId: response.data.id,
+      message: "Processo de cadastro iniciado com sucesso.",
+    });
+  } catch (error) {
+    console.error("Error in /start-cadastro:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 1. Iniciar o processo de cadastro de cliente usando o novo fluxo
+app.post("/start-cadastro-analise", async (req, res) => {
+  try {
+    const { razaoSocial, cnpj, representante, contato } = req.body;
+    // Inicia o processo "cadastroAnaliseFormalizacao" no Camunda
+    const response = await axios.post(
+      "http://camunda:8080/engine-rest/process-definition/key/cadastroAnaliseFormalizacao/start",
+      {
+        variables: {
+          razaoSocial: { value: razaoSocial, type: "String" },
+          cnpj: { value: cnpj, type: "String" },
+          representante: { value: representante, type: "String" },
+          contato: { value: contato, type: "String" },
         },
       }
     );
@@ -254,6 +281,7 @@ app.get("/history", async (req, res) => {
       historyData.push({
         processInstanceId: instanceId,
         nome: variables.nome || "",
+        score: variables.score || "", // Inclui o score
         approved: variables.approved,
         startTime: instance.startTime,
         approvalTime: approvalTime,
