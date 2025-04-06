@@ -1,0 +1,124 @@
+version: '3.8'
+
+services:
+  # Serviço principal do Laravel
+  app:
+    build:
+      context: ./docker/app
+      dockerfile: Dockerfile
+    container_name: workflow-app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+      - ./docker/app/php.ini:/usr/local/etc/php/conf.d/local.ini
+    networks:
+      - workflow-network
+    depends_on:
+      - mysql
+      - redis
+
+  # Servidor web Nginx
+  webserver:
+    image: nginx:alpine
+    container_name: workflow-webserver
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    networks:
+      - workflow-network
+    depends_on:
+      - app
+
+  # Banco de dados MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: workflow-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-workflow}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-root}
+      MYSQL_USER: ${DB_USERNAME:-workflow}
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/my.cnf
+    networks:
+      - workflow-network
+
+  # Redis para filas e cache
+  redis:
+    image: redis:alpine
+    container_name: workflow-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - workflow-network
+
+  # Laravel Horizon para gerenciamento de filas
+  horizon:
+    build:
+      context: ./docker/app
+      dockerfile: Dockerfile
+    container_name: workflow-horizon
+    restart: unless-stopped
+    command: php artisan horizon
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    networks:
+      - workflow-network
+    depends_on:
+      - app
+      - redis
+
+  # Serviço para execução de agendamentos
+  scheduler:
+    build:
+      context: ./docker/app
+      dockerfile: Dockerfile
+    container_name: workflow-scheduler
+    restart: unless-stopped
+    command: php /var/www/artisan schedule:work
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    networks:
+      - workflow-network
+    depends_on:
+      - app
+
+  # phpmyadmin (opcional, para gerenciamento visual do MySQL)
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: workflow-phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: ${DB_USERNAME:-workflow}
+      PMA_PASSWORD: ${DB_PASSWORD:-root}
+    ports:
+      - "8080:80"
+    networks:
+      - workflow-network
+    depends_on:
+      - mysql
+
+networks:
+  workflow-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+  redis-data: 
