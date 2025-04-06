@@ -102,10 +102,10 @@
                         <a href="{{ route('workflows.edit', $workflow->id) }}" class="text-yellow-600 hover:text-yellow-900 mr-3" title="Editar">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <a href="{{ route('workflows.createStage', $workflow->id) }}" class="text-green-600 hover:text-green-900 mr-3" title="Adicionar Estágio">
+                        <a href="{{ route('workflows.stages.create', $workflow->id) }}" class="text-green-600 hover:text-green-900 mr-3" title="Adicionar Estágio">
                             <i class="fas fa-plus-circle"></i>
                         </a>
-                        <a href="{{ route('workflows.createTransition', $workflow->id) }}" class="text-blue-600 hover:text-blue-900 mr-3" title="Adicionar Transição">
+                        <a href="{{ route('workflows.transitions.create', $workflow->id) }}" class="text-blue-600 hover:text-blue-900 mr-3" title="Adicionar Transição">
                             <i class="fas fa-exchange-alt"></i>
                         </a>
 
@@ -125,9 +125,7 @@
         </table>
     </div>
 
-    <div class="mt-4">
-        {{ $workflows->links() }}
-    </div>
+
     @else
     <div class="text-center py-10 bg-gray-50 rounded-lg">
         <i class="fas fa-project-diagram text-gray-300 text-5xl mb-3"></i>
