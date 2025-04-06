@@ -7,20 +7,27 @@ use Illuminate\Http\Request;
 use App\Domain\Process\Models\Process;
 use App\Domain\Process\Services\ProcessService;
 use App\Domain\Workflow\Models\Workflow;
-use App\Domain\Workflow\Models\WorkflowStage;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class ProcessController extends Controller
+class ProcessController extends Controller implements HasMiddleware
 {
     protected $processService;
 
     public function __construct(ProcessService $processService)
     {
         $this->processService = $processService;
-        $this->middleware('auth');
     }
 
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('can:view processes', only: ['index', 'show']),
+            new Middleware('can:manage processes', except: ['index', 'show']),
+        ];
+    }
     /**
      * Display a listing of processes.
      */

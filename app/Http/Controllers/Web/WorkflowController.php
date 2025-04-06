@@ -8,19 +8,29 @@ use App\Domain\Workflow\Models\Workflow;
 use App\Domain\Workflow\Models\WorkflowStage;
 use App\Domain\Workflow\Models\WorkflowTransition;
 use App\Domain\Workflow\Services\WorkflowService;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class WorkflowController extends Controller
+class WorkflowController extends Controller implements HasMiddleware
 {
     protected $workflowService;
 
     public function __construct(WorkflowService $workflowService)
     {
         $this->workflowService = $workflowService;
-        $this->middleware('can:view workflows')->only(['index', 'show']);
-        $this->middleware('can:manage workflows')->except(['index', 'show']);
     }
 
+    public static function middleware(): array
+    {
+        /**
+         * $this->middleware('can:view workflows')->only(['index', 'show']);
+         * $this->middleware('can:manage workflows')->except(['index', 'show']);
+         */
+        return [
+            new Middleware('can:view workflows', only: ['index', 'show']),
+            new Middleware('can:manage workflows', except: ['index', 'show']),
+        ];
+    }
     /**
      * Display a listing of workflows.
      */
