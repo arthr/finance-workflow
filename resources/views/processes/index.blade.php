@@ -109,9 +109,9 @@
                         {{ $process->workflow->name ?? 'N/A' }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        @if ($process->current_stage)
+                        @if ($process->currentStage)
                         <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                            {{ $process->current_stage->name }}
+                            {{ $process->currentStage->name }}
                         </span>
                         @else
                         <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">

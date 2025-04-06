@@ -88,12 +88,12 @@
                             </td>
                             <td class="px-4 py-2 whitespace-nowrap">
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                    @if($process->current_stage)
+                                    @if($process->currentStage)
                                         bg-green-100 text-green-800
                                     @else
                                         bg-gray-100 text-gray-800
                                     @endif">
-                                    {{ $process->current_stage ? $process->current_stage->name : 'Não iniciado' }}
+                                    {{ $process->currentStage ? $process->currentStage->name : 'Não iniciado' }}
                                 </span>
                             </td>
                             <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{{ $process->created_at->format('d/m/Y') }}</td>
