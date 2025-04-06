@@ -64,11 +64,128 @@ class WorkflowService
 
     public function addTransition(Workflow $workflow, array $transitionData)
     {
+        // 1. Validar se os estágios pertencem ao workflow
+        $fromStage = $workflow->stages()->find($transitionData['from_stage_id']);
+        $toStage = $workflow->stages()->find($transitionData['to_stage_id']);
+        
+        if (!$fromStage || !$toStage) {
+            throw new \InvalidArgumentException('Os estágios selecionados não pertencem a este workflow.');
+        }
+        
+        // 2. Impedir que um estágio transite para si mesmo
+        if ($fromStage->id === $toStage->id) {
+            throw new \InvalidArgumentException('Um estágio não pode ter uma transição para si mesmo.');
+        }
+        
+        // 3. Verificar se já existe uma transição com os mesmos estágios
+        $existingTransition = $workflow->transitions()
+            ->where('from_stage_id', $fromStage->id)
+            ->where('to_stage_id', $toStage->id)
+            ->first();
+        
+        if ($existingTransition) {
+            throw new \InvalidArgumentException('Já existe uma transição entre estes estágios.');
+        }
+        
+        // 4. Validar tipo de transição e condições
+        $triggerType = $transitionData['trigger_type'] ?? 'manual';
+        $condition = $transitionData['condition'] ?? null;
+        
+        $this->validateTransitionConditions($triggerType, $condition, $fromStage, $toStage);
+        
+        // 5. Criar a transição
         return $workflow->transitions()->create([
-            'from_stage_id' => $transitionData['from_stage_id'],
-            'to_stage_id' => $transitionData['to_stage_id'],
-            'condition' => $transitionData['condition'] ?? null,
-            'trigger_type' => $transitionData['trigger_type'] ?? 'manual',
+            'from_stage_id' => $fromStage->id,
+            'to_stage_id' => $toStage->id,
+            'condition' => $condition,
+            'trigger_type' => $triggerType,
         ]);
+    }
+
+    /**
+     * Validar se as condições são válidas para o tipo de transição
+     */
+    private function validateTransitionConditions($triggerType, $condition, $fromStage, $toStage)
+    {
+        switch ($triggerType) {
+            case 'manual':
+                // Condições opcionais para transições manuais
+                if ($condition && isset($condition['permission']) && empty($condition['permission'])) {
+                    // Se a permissão estiver definida mas vazia, remova-a
+                    unset($condition['permission']);
+                }
+                break;
+                
+            case 'automatic':
+                // Validar condições para transições automáticas
+                if (empty($condition) || !isset($condition['field']) || !isset($condition['operator']) || !isset($condition['value'])) {
+                    throw new \InvalidArgumentException('Transições automáticas requerem condições com campo, operador e valor.');
+                }
+                
+                // Validar operador
+                $validOperators = ['equals', 'not_equals', 'greater_than', 'less_than', 'contains'];
+                if (!in_array($condition['operator'], $validOperators)) {
+                    throw new \InvalidArgumentException('Operador inválido para condição automática.');
+                }
+                break;
+                
+            case 'scheduled':
+                // Validar condições para transições agendadas
+                if (empty($condition) || !isset($condition['duration']) || !isset($condition['unit'])) {
+                    throw new \InvalidArgumentException('Transições agendadas requerem duração e unidade de tempo.');
+                }
+                
+                // Validar duração
+                if (!is_numeric($condition['duration']) || $condition['duration'] <= 0) {
+                    throw new \InvalidArgumentException('A duração deve ser um número positivo.');
+                }
+                
+                // Validar unidade
+                $validUnits = ['minutes', 'hours', 'days', 'weeks'];
+                if (!in_array($condition['unit'], $validUnits)) {
+                    throw new \InvalidArgumentException('Unidade de tempo inválida.');
+                }
+                break;
+                
+            default:
+                throw new \InvalidArgumentException('Tipo de gatilho inválido.');
+        }
+        
+        // Validações adicionais baseadas no tipo de estágio de origem
+        if ($fromStage->type === 'automatic' && $triggerType !== 'automatic') {
+            throw new \InvalidArgumentException('Estágios automáticos devem ter transições automáticas.');
+        }
+        
+        // Validações relacionadas à ordem dos estágios (opcional)
+        $this->validateStageOrder($fromStage, $toStage);
+        
+        return true;
+    }
+
+    /**
+     * Validar a ordem dos estágios para evitar fluxos inválidos
+     */
+    private function validateStageOrder($fromStage, $toStage)
+    {
+        // Esta é uma implementação básica que pode ser expandida conforme necessário
+        
+        // Verifica se existem processos ativos e se esta transição pode invalidar fluxos existentes
+        $activeProcessesCount = $fromStage->workflow->processes()
+            ->where('current_stage_id', $fromStage->id)
+            ->where('status', 'active')
+            ->count();
+        
+        // Se houver processos ativos neste estágio, registre um log de aviso
+        if ($activeProcessesCount > 0) {
+            \Illuminate\Support\Facades\Log::warning('Nova transição criada que afeta processos ativos', [
+                'from_stage_id' => $fromStage->id,
+                'to_stage_id' => $toStage->id,
+                'active_processes' => $activeProcessesCount,
+                'workflow_id' => $fromStage->workflow_id,
+                'created_by' => Auth::id(),
+            ]);
+        }
+        
+        return true;
     }
 }

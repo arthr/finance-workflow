@@ -8,6 +8,7 @@ use App\Domain\Workflow\Models\Workflow;
 use App\Domain\Workflow\Models\WorkflowStage;
 use App\Domain\Process\Models\ProcessHistory;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Process extends Model
 {
@@ -33,7 +34,7 @@ class Process extends Model
         return $this->belongsTo(Workflow::class);
     }
 
-    public function currentStage()
+    public function currentStage(): BelongsTo
     {
         return $this->belongsTo(WorkflowStage::class, 'current_stage_id');
     }

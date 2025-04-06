@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
+
 class ProcessController extends Controller implements HasMiddleware
 {
     protected $processService;
@@ -200,9 +201,58 @@ class ProcessController extends Controller implements HasMiddleware
 
             return redirect()->route('processes.show', $process)
                 ->with('success', 'Processo movido para o próximo estágio com sucesso!');
-        } catch (\Exception $e) {
+        } catch (\InvalidArgumentException $e) {
+            // Captura exceções específicas de validação e fornece feedback detalhado
             return redirect()->route('processes.show', $process)
-                ->with('error', 'Erro ao mover o processo: ' . $e->getMessage());
+                ->with('error', $e->getMessage())
+                ->with('errorType', 'validation');
+        } catch (\Exception $e) {
+            // Captura qualquer outra exceção genérica
+            \Illuminate\Support\Facades\Log::error('Erro ao mover processo: ' . $e->getMessage(), [
+                'process_id' => $process->id,
+                'to_stage_id' => $validated['to_stage_id'],
+                'user_id' => Auth::id(),
+                'exception' => $e
+            ]);
+
+            return redirect()->route('processes.show', $process)
+                ->with('error', 'Erro ao mover o processo: ' . $e->getMessage())
+                ->with('errorType', 'system');
+        }
+    }
+
+    /**
+     * Remove the specified process from storage.
+     */
+    public function destroy($id)
+    {
+        $process = Process::findOrFail($id);
+
+        // Verificar se o usuário tem permissão para excluir o processo
+        if (!Auth::user()->can('manage processes')) {
+            return redirect()->route('processes.index')
+                ->with('error', 'Você não tem permissão para excluir processos.');
+        }
+
+        // Verificar se o processo pode ser excluído (não estiver concluído ou cancelado)
+        if ($process->status === 'completed' || $process->status === 'cancelled') {
+            return redirect()->route('processes.index')
+                ->with('error', 'Processos concluídos ou cancelados não podem ser excluídos.');
+        }
+
+        try {
+            $process->delete();
+            return redirect()->route('processes.index')
+                ->with('success', 'Processo excluído com sucesso!');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Erro ao excluir processo: ' . $e->getMessage(), [
+                'process_id' => $process->id,
+                'user_id' => Auth::id(),
+                'exception' => $e
+            ]);
+
+            return redirect()->route('processes.index')
+                ->with('error', 'Erro ao excluir o processo: ' . $e->getMessage());
         }
     }
 

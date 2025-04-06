@@ -22,8 +22,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/workflows/{workflow}/transitions/create', [WorkflowController::class, 'createTransition'])->name('workflows.transitions.create');
     Route::post('/workflows/{workflow}/transitions', [WorkflowController::class, 'storeTransition'])->name('workflows.transitions.store');
 
-    // Processos
-    Route::resource('processes', ProcessController::class)->except(['destroy']);
+    // Processos (including destroy)
+    Route::resource('processes', ProcessController::class);
     Route::post('/processes/{process}/move', [ProcessController::class, 'move'])->name('processes.move');
     Route::get('/processes/{process}/history', [ProcessController::class, 'history'])->name('processes.history');
 });

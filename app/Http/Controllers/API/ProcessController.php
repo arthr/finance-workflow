@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Domain\Process\Models\Process;
 use App\Domain\Process\Services\ProcessService;
+use Illuminate\Support\Facades\Auth;
 
 class ProcessController extends Controller
 {
@@ -104,17 +105,34 @@ class ProcessController extends Controller
      */
     public function moveToNextStage(Request $request, string $id)
     {
-        $process = Process::findOrFail($id);
+        try {
+            $process = Process::findOrFail($id);
 
-        $validated = $request->validate([
-            'to_stage_id' => 'required|exists:workflow_stages,id',
-            'assigned_to' => 'nullable|exists:users,id',
-            'comments' => 'nullable|string',
-        ]);
+            $validated = $request->validate([
+                'to_stage_id' => 'required|exists:workflow_stages,id',
+                'assigned_to' => 'nullable|exists:users,id',
+                'comments' => 'nullable|string',
+            ]);
 
-        $process = $this->processService->moveToNextStage($process, $validated);
+            $process = $this->processService->moveToNextStage($process, $validated);
 
-        return response()->json($process->load(['currentStage', 'assignee']));
+            return response()->json($process->load(['currentStage', 'assignee']));
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json(['error' => 'Processo não encontrado'], 404);
+        } catch (\InvalidArgumentException $e) {
+            // Captura exceções específicas de validação e fornece feedback detalhado
+            return response()->json(['error' => $e->getMessage()], 422);
+        } catch (\Exception $e) {
+            // Captura qualquer outra exceção genérica
+            \Illuminate\Support\Facades\Log::error('API - Erro ao mover processo: ' . $e->getMessage(), [
+                'process_id' => $id,
+                'to_stage_id' => $request->input('to_stage_id'),
+                'user_id' => Auth::id(),
+                'exception' => $e
+            ]);
+
+            return response()->json(['error' => 'Erro interno ao mover o processo: ' . $e->getMessage()], 500);
+        }
     }
 
     /**
