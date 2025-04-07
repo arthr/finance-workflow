@@ -16,7 +16,8 @@
         <form action="{{ route('processes.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
                 <label for="workflow_id" class="block text-sm font-medium text-gray-700 mb-1">Workflow</label>
-                <select name="workflow_id" id="workflow_id" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                <select name="workflow_id" id="workflow_id" 
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 h-[42px]">
                     <option value="">Todos</option>
                     @foreach ($workflows as $workflow)
                     <option value="{{ $workflow->id }}" {{ request('workflow_id') == $workflow->id ? 'selected' : '' }}>
@@ -28,7 +29,8 @@
 
             <div>
                 <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select name="status" id="status" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                <select name="status" id="status" 
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 h-[42px]">
                     <option value="">Todos</option>
                     <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Rascunho</option>
                     <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Ativo</option>
@@ -39,7 +41,8 @@
 
             <div>
                 <label for="assigned_to" class="block text-sm font-medium text-gray-700 mb-1">Atribuído a</label>
-                <select name="assigned_to" id="assigned_to" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                <select name="assigned_to" id="assigned_to" 
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 h-[42px]">
                     <option value="">Todos</option>
                     <option value="{{ auth()->id() }}" {{ request('assigned_to') == auth()->id() ? 'selected' : '' }}>Meus Processos</option>
                     @foreach ($users as $user)

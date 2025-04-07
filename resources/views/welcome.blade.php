@@ -84,7 +84,7 @@
                     </div>
                 </div>
                 <div class="col-lg-6">
-                    <img src="https://source.unsplash.com/random/600x400/?workflow" alt="Workflow" class="img-fluid rounded shadow">
+                    <img src="https://placehold.co/600x400/EEE/31343C?text=Worflow+System" alt="Workflow" class="img-fluid rounded shadow">
                 </div>
             </div>
         </div>

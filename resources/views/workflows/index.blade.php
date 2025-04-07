@@ -26,7 +26,9 @@
 
             <div class="w-40">
                 <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select name="status" id="status" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" onchange="this.form.submit()">
+                <select name="status" id="status" 
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 h-[42px]" 
+                    onchange="this.form.submit()">
                     <option value="">Todos</option>
                     <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>Ativos</option>
                     <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>Inativos</option>
@@ -78,7 +80,7 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                            {{ $workflow->stages_count }} estágios
+                            {{ $workflow->stages->count() }} estágios
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
@@ -93,7 +95,7 @@
                         @endif
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {{ $workflow->processes_count ?? 0 }}
+                        {{ $workflow->processes->count() ?? 0 }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <a href="{{ route('workflows.show', $workflow->id) }}" class="text-indigo-600 hover:text-indigo-900 mr-3" title="Visualizar">

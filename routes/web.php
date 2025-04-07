@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\WorkflowController;
 use App\Http\Controllers\Web\ProcessController;
+use App\Http\Controllers\Auth\ProfileController;
 
 // Rota de boas-vindas (pública)
 Route::get('/', function () {
