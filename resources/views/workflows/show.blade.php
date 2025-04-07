@@ -244,10 +244,30 @@
             const toRect = toStage.getBoundingClientRect();
             const containerRect = container.getBoundingClientRect();
 
-            const fromX = fromRect.left + fromRect.width / 2 - containerRect.left;
-            const fromY = fromRect.top + fromRect.height - containerRect.top;
-            const toX = toRect.left + toRect.width / 2 - containerRect.left;
-            const toY = toRect.top - containerRect.top;
+            let fromX, fromY, toX, toY;
+
+            // Determinar a posição inicial e final com base na posição relativa
+            if (fromRect.right < toRect.left) { // from está à esquerda de to
+                fromX = fromRect.right - containerRect.left;
+                fromY = fromRect.top + fromRect.height / 2 - containerRect.top;
+                toX = toRect.left - containerRect.left;
+                toY = toRect.top + toRect.height / 2 - containerRect.top;
+            } else if (fromRect.left > toRect.right) { // from está à direita de to
+                fromX = fromRect.left - containerRect.left;
+                fromY = fromRect.top + fromRect.height / 2 - containerRect.top;
+                toX = toRect.right - containerRect.left;
+                toY = toRect.top + toRect.height / 2 - containerRect.top;
+            } else if (fromRect.bottom < toRect.top) { // from está acima de to
+                fromX = fromRect.left + fromRect.width / 2 - containerRect.left;
+                fromY = fromRect.bottom - containerRect.top;
+                toX = toRect.left + toRect.width / 2 - containerRect.left;
+                toY = toRect.top - containerRect.top;
+            } else { // from está abaixo de to
+                fromX = fromRect.left + fromRect.width / 2 - containerRect.left;
+                fromY = fromRect.top - containerRect.top;
+                toX = toRect.left + toRect.width / 2 - containerRect.left;
+                toY = toRect.bottom - containerRect.top;
+            }
 
             // Criar a linha
             const line = document.createElement('div');
