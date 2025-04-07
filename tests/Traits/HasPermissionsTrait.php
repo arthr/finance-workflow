@@ -17,7 +17,7 @@ trait HasPermissionsTrait
         
         // Atribuir a permissão ao usuário
         $this->user->givePermissionTo($permissionModel);
-        
+
         return $this;
     }
 
@@ -27,9 +27,9 @@ trait HasPermissionsTrait
     public function withRole($role)
     {
         $roleModel = Role::firstOrCreate(['name' => $role]);
-        
+
         $this->user->assignRole($roleModel);
-        
+
         return $this;
     }
 }
