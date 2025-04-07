@@ -219,6 +219,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         const stages = document.querySelectorAll('.workflow-stage');
         const container = document.getElementById('workflow-diagram');
+        const lines = [];
 
         // Organiza estágios usando flexbox
         function arrangeStages() {
@@ -233,100 +234,61 @@
             });
         }
 
-        // Função global para desenhar transições
-        window.drawTransition = function(fromId, toId, type) {
+        // Função para desenhar transições usando LeaderLine
+        function drawTransition(fromId, toId, type) {
             const fromStage = document.getElementById(`stage-${fromId}`);
             const toStage = document.getElementById(`stage-${toId}`);
 
             if (!fromStage || !toStage) return;
 
-            const fromRect = fromStage.getBoundingClientRect();
-            const toRect = toStage.getBoundingClientRect();
-            const containerRect = container.getBoundingClientRect();
+            // Cria a linha com LeaderLine
+            const line = new LeaderLine(
+                fromStage,
+                toStage, {
+                    color: type === 'manual' ? '#3b82f6' : (type === 'automatic' ? '#10b981' : '#f59e0b'),
+                    size: 2,
+                    startPlug: 'disc',
+                    endPlug: 'disc',
+                    endPlugSize: 1.5,
+                    path: 'straight', // Pode ser 'arc', 'fluid', etc.
+                }
+            );
 
-            let fromX, fromY, toX, toY;
+            lines.push(line);
+        }
 
-            // Determinar a posição inicial e final com base na posição relativa
-            if (fromRect.right < toRect.left) { // from está à esquerda de to
-                fromX = fromRect.right - containerRect.left;
-                fromY = fromRect.top + fromRect.height / 2 - containerRect.top;
-                toX = toRect.left - containerRect.left;
-                toY = toRect.top + toRect.height / 2 - containerRect.top;
-            } else if (fromRect.left > toRect.right) { // from está à direita de to
-                fromX = fromRect.left - containerRect.left;
-                fromY = fromRect.top + fromRect.height / 2 - containerRect.top;
-                toX = toRect.right - containerRect.left;
-                toY = toRect.top + toRect.height / 2 - containerRect.top;
-            } else if (fromRect.bottom < toRect.top) { // from está acima de to
-                fromX = fromRect.left + fromRect.width / 2 - containerRect.left;
-                fromY = fromRect.bottom - containerRect.top;
-                toX = toRect.left + toRect.width / 2 - containerRect.left;
-                toY = toRect.top - containerRect.top;
-            } else { // from está abaixo de to
-                fromX = fromRect.left + fromRect.width / 2 - containerRect.left;
-                fromY = fromRect.top - containerRect.top;
-                toX = toRect.left + toRect.width / 2 - containerRect.left;
-                toY = toRect.bottom - containerRect.top;
-            }
+        // Função para redesenhar todas as transições
+        function redrawTransitions() {
+            // Remove todas as linhas existentes
+            lines.forEach(line => line.remove());
+            lines.length = 0;
 
-            // Criar a linha
-            const line = document.createElement('div');
-            line.classList.add('workflow-transition');
-
-            // Calcular dimensões e ângulo da linha
-            const length = Math.sqrt(Math.pow(toX - fromX, 2) + Math.pow(toY - fromY, 2));
-            const angle = Math.atan2(toY - fromY, toX - fromX) * 180 / Math.PI;
-
-            line.style.width = `${length}px`;
-            line.style.height = '2px';
-            line.style.backgroundColor = type === 'manual' ? '#3b82f6' : (type === 'automatic' ? '#10b981' : '#f59e0b');
-            line.style.position = 'absolute';
-            line.style.top = `${fromY}px`;
-            line.style.left = `${fromX}px`;
-            line.style.transformOrigin = '0 0';
-            line.style.transform = `rotate(${angle}deg)`;
-
-            // Adicionar seta no final
-            const arrow = document.createElement('div');
-            arrow.classList.add('workflow-transition-arrow');
-            arrow.style.borderColor = line.style.backgroundColor;
-            arrow.style.right = '-6px';
-            arrow.style.top = '-6px';
-            line.appendChild(arrow);
-
-            container.appendChild(line);
+            // Desenha novamente as transições
+            <?php if ($workflow->transitions->count() > 0) { ?>
+                <?php foreach ($workflow->transitions as $transition) { ?>
+                    drawTransition(<?php echo $transition->from_stage_id ?>, <?php echo $transition->to_stage_id ?>, "<?php echo $transition->trigger_type ?>");
+                <?php } ?>
+            <?php } ?>
         }
 
         // Inicializar layout dos estágios
         arrangeStages();
 
+        // Desenhar as transições
+        redrawTransitions();
+
         // Adicionar evento de redimensionamento
         window.addEventListener('resize', function() {
-            // Limpar transições existentes
-            document.querySelectorAll('.workflow-transition').forEach(el => el.remove());
-
-            // Reorganizar estágios
-            arrangeStages();
-
-            // Redesenhar transições (será chamado pelo script em @@push)
-            if (typeof window.redrawTransitions === 'function') {
-                window.redrawTransitions();
-            }
+            redrawTransitions();
         });
-    });
-</script>
-@endsection
 
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
         // Esperar um momento para garantir que o layout dos estágios esteja pronto
         setTimeout(function() {
             // Função para redesenhar todas as transições
             window.redrawTransitions = function() {
                 <?php if ($workflow->transitions->count() > 0) { ?>
                     <?php foreach ($workflow->transitions as $transition) { ?>
-                        window.drawTransition(<?php echo $transition->from_stage_id ?>, <?php echo $transition->to_stage_id ?>, "<?php echo $transition->trigger_type ?>");
+                        drawTransition(<?php echo $transition->from_stage_id ?>, <?php echo $transition->to_stage_id ?>, "<?php echo $transition->trigger_type ?>");
                     <?php } ?>
                 <?php } ?>
             };
@@ -335,4 +297,4 @@
         }, 100);
     });
 </script>
-@endpush
+@endsection
