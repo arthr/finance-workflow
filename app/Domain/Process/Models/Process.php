@@ -3,6 +3,7 @@
 namespace App\Domain\Process\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use App\Domain\Workflow\Models\Workflow;
 use App\Domain\Workflow\Models\WorkflowStage;
@@ -12,6 +13,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Process extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'workflow_id',
         'reference_type',

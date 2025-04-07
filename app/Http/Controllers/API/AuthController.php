@@ -3,74 +3,58 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
     /**
-     * Handle user login and token generation.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * Login com autenticação via API
      */
     public function login(Request $request)
     {
-        $credentials = $request->validate([
+        $request->validate([
             'email' => 'required|email',
-            'password' => 'required|string',
+            'password' => 'required',
         ]);
-
-        if (!Auth::attempt($credentials)) {
-            return response()->json([
-                'error' => 'Credenciais inválidas'
-            ], 401);
-        }
 
         $user = User::where('email', $request->email)->first();
 
-        // Revoke previous tokens if needed
-        if ($request->boolean('revoke_previous', false)) {
-            $user->tokens()->delete();
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'message' => 'Invalid credentials'
+            ], 401);
         }
 
-        // Create new token with specified abilities
-        $token = $user->createToken('api-token', ['*'])->plainTextToken;
+        $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
+            'message' => 'Authenticated successfully',
             'token' => $token,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email
-            ]
+            'user' => $user
         ]);
     }
 
     /**
-     * Logout user (revoke token).
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * Retorna informações do usuário autenticado
+     */
+    public function user(Request $request)
+    {
+        return response()->json($request->user());
+    }
+
+    /**
+     * Logout - revoga o token atual
      */
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
-            'message' => 'Logout realizado com sucesso'
+            'message' => 'Logged out successfully'
         ]);
-    }
-
-    /**
-     * Get authenticated user information.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function user(Request $request)
-    {
-        return response()->json($request->user());
     }
 }

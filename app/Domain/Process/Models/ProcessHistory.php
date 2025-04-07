@@ -3,12 +3,15 @@
 namespace App\Domain\Process\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Domain\Process\Models\Process;
 use App\Domain\Workflow\Models\WorkflowStage;
 use App\Models\User;
 
 class ProcessHistory extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'process_id',
         'from_stage_id',

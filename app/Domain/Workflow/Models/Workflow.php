@@ -3,6 +3,7 @@
 namespace App\Domain\Workflow\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Domain\Workflow\Models\WorkflowStage;
 use App\Domain\Workflow\Models\WorkflowTransition;
 use App\Domain\Process\Models\Process;
@@ -10,6 +11,8 @@ use App\Models\User;
 
 class Workflow extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'name',
         'description',

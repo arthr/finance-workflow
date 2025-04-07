@@ -3,11 +3,14 @@
 namespace App\Domain\Workflow\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Domain\Workflow\Models\Workflow;
 use App\Domain\Workflow\Models\WorkflowStage;
 
 class WorkflowTransition extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'workflow_id',
         'from_stage_id',
