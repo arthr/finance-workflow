@@ -220,37 +220,17 @@
         const stages = document.querySelectorAll('.workflow-stage');
         const container = document.getElementById('workflow-diagram');
 
-        // Organiza estágios horizontalmente ou verticalmente
+        // Organiza estágios usando flexbox
         function arrangeStages() {
-            const stageCount = stages.length;
-            const isHorizontal = window.innerWidth > 768;
+            container.style.display = 'flex';
+            container.style.flexWrap = 'wrap';
+            container.style.justifyContent = 'center';
+            container.style.alignItems = 'flex-start';
+            container.style.gap = '20px';
 
-            if (isHorizontal) {
-                // Layout horizontal
-                const stageWidth = 220;
-                const spacing = 80;
-                const totalWidth = stageCount * stageWidth + (stageCount - 1) * spacing;
-
-                container.style.width = `${totalWidth}px`;
-                container.style.height = '180px';
-
-                stages.forEach((stage, index) => {
-                    stage.style.position = 'absolute';
-                    stage.style.left = `${index * (stageWidth + spacing)}px`;
-                    stage.style.top = '40px';
-                });
-            } else {
-                // Layout vertical
-                container.style.width = '100%';
-                container.style.height = `${stageCount * 150}px`;
-
-                stages.forEach((stage, index) => {
-                    stage.style.position = 'absolute';
-                    stage.style.left = '50%';
-                    stage.style.transform = 'translateX(-50%)';
-                    stage.style.top = `${index * 120}px`;
-                });
-            }
+            stages.forEach(stage => {
+                stage.style.position = 'relative';
+            });
         }
 
         // Função global para desenhar transições
