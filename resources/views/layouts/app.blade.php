@@ -16,6 +16,7 @@
     <script src="https://cdn.jsdelivr.net/npm/leader-line"></script>
 
     @yield('styles')
+    @vite(['resources/js/app.jsx'])
 </head>
 
 <body class="bg-gray-100 min-h-screen flex flex-col">
