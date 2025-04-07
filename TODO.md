@@ -7,6 +7,13 @@
 - [ ] Implementar balanceamento de carga com Nginx
 - [ ] Adicionar suporte a sharding e particionamento de dados para workflows
 
+## Arquitetura
+- [ ] Flexibilizar dados de config/condições dos estágios e transições
+  - [x] Instalar dependencia mongodb/laravel-mongodb:^5.2
+  - [ ] Preparar container MongoDB para armazenar dados transacionais.
+    - [ ] Armazenar config dos estágios (stages)
+    - [ ] Armazenar conditions das transições (transitions)
+
 ### Testes
 - [ ] Escrever testes unitários para os novos serviços:
   - [ ] WorkflowService (validação de transições)
@@ -21,6 +28,7 @@
 
 ### Documentação
 - [ ] Atualizar diagrama de arquitetura para refletir melhorias recentes
+  - [ ] Informações sobre adição do MongoDB a arquitetura
 - [ ] Criar exemplos de uso para APIs REST
 - [ ] Documentar procedimentos de backup e recuperação
 

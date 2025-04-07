@@ -27,6 +27,10 @@ RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 # Instalar Redis extension
 RUN pecl install redis && docker-php-ext-enable redis
 
+# Instalar extensão do MongoDB
+RUN pecl install mongodb \
+    && docker-php-ext-enable mongodb
+
 # Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
@@ -48,4 +52,4 @@ EXPOSE 9000
 # Definir usuário padrão
 USER $user
 
-CMD ["php-fpm"] 
+CMD ["php-fpm"]

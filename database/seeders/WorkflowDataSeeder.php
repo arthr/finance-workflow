@@ -24,6 +24,8 @@ class WorkflowDataSeeder extends Seeder
             ['name' => 'Verificar Duplicidade', 'description' => 'Checar duplicidade.', 'order' => 2, 'type' => 'automatic'],
             ['name' => 'Cadastro no Sistema', 'description' => 'Inserir dados validados.', 'order' => 3, 'type' => 'manual'],
             ['name' => 'Notifica Crédito', 'description' => 'Notificar crédito.', 'order' => 4, 'type' => 'automatic'],
+            ['name' => 'Notificar Solicitante', 'description' => 'Notificar situação do cadastro ao solicitante.', 'order' => 5, 'type' => 'conditional', 'config' => '{"delay":"1","field":"status","value":"duplicado","action":"notify","operator":"equals"}'],
+            ['name' => 'Descartar Cadastro', 'description' => 'Excluir dados coletados do cadastro.', 'order' => 6, 'type' => 'automatic', 'config' => '{"delay":"15","field":null,"value":null,"action":"notify","operator":"equals"}'],
         ];
 
         $stageIds = [];
@@ -55,6 +57,18 @@ class WorkflowDataSeeder extends Seeder
                 'to_stage_id' => $stageIds[4],
                 'condition' => '{"unit":"minutes","field":"status","value":"concluido","duration":"1","operator":"equals","permission":null}',
                 'trigger_type' => 'automatic',
+            ],
+            [
+                'from_stage_id' => $stageIds[2],
+                'to_stage_id' => $stageIds[5],
+                'condition' => '{"unit":"minutes","field":"status","value":"duplicado","duration":"1","operator":"equals","permission":null}',
+                'trigger_type' => 'automatic',
+            ],
+            [
+                'from_stage_id' => $stageIds[5],
+                'to_stage_id' => $stageIds[6],
+                'condition' => '{"unit":"days","field":null,"value":null,"duration":"2","operator":"equals","permission":null,"business_days":"1"}',
+                'trigger_type' => 'scheduled',
             ],
         ];
 
