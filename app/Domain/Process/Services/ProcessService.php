@@ -55,7 +55,7 @@ class ProcessService
             if ($process->status !== 'active') {
                 throw new \InvalidArgumentException('Não é possível mover um processo que não está ativo.');
             }
-            
+
             // 2. Obter o estágio atual e buscar a transição
             $currentStage = $process->currentStage;
             $transition = $currentStage->outgoingTransitions()
@@ -66,7 +66,7 @@ class ProcessService
             if (!$transition) {
                 throw new \InvalidArgumentException('Transição inválida. O estágio atual não possui uma transição para o estágio solicitado.');
             }
-            
+
             // 4. Validar permissões com base no tipo de transição
             if ($transition->trigger_type === 'manual') {
                 $this->validateManualTransition($transition, $data);
@@ -75,16 +75,16 @@ class ProcessService
             } elseif ($transition->trigger_type === 'scheduled') {
                 $this->validateScheduledTransition($transition, $process, $data);
             }
-            
+
             // 5. Processar a mudança de estágio
             $fromStageId = $process->current_stage_id;
             $process->current_stage_id = $data['to_stage_id'];
             $process->assigned_to = $data['assigned_to'] ?? $process->assigned_to;
-            
+
             // 6. Verificar se é necessário atualizar o status do processo
             $toStage = WorkflowStage::find($data['to_stage_id']);
             $this->updateProcessStatusBasedOnStage($process, $toStage);
-            
+
             $process->save();
 
             // 7. Registrar no histórico
@@ -98,7 +98,7 @@ class ProcessService
 
             // 8. Disparar evento
             event(new ProcessStageChanged($process, $fromStageId));
-            
+
             // 9. Registrar log para análise
             \Illuminate\Support\Facades\Log::info('Processo movido para novo estágio', [
                 'process_id' => $process->id,
@@ -125,7 +125,7 @@ class ProcessService
                 throw new \InvalidArgumentException("Você não possui a permissão necessária ({$requiredPermission}) para executar esta transição.");
             }
         }
-        
+
         // Verificações adicionais específicas para transições manuais podem ser adicionadas aqui
         return true;
     }
@@ -135,31 +135,31 @@ class ProcessService
      */
     private function validateAutomaticTransition($transition, $process, $data)
     {
-        // As transições automáticas normalmente não são movidas manualmente, 
+        // As transições automáticas normalmente não são movidas manualmente,
         // mas podemos permitir isso para usuários com permissões especiais
         if (!Auth::user()->can('manage processes')) {
             throw new \InvalidArgumentException("Transições automáticas não podem ser executadas manualmente sem permissão especial.");
         }
-        
+
         // Se tivermos dados do processo, podemos validar se a condição seria atendida
         if (isset($transition->condition) && !empty($transition->condition)) {
             $fieldName = $transition->condition['field'];
             $operator = $transition->condition['operator'];
             $compareValue = $transition->condition['value'];
-            
+
             // Se o campo estiver nos dados do processo
             if (isset($process->data) && is_array($process->data) && array_key_exists($fieldName, $process->data)) {
                 $processValue = $process->data[$fieldName];
-                
+
                 // Avaliar a condição
                 $conditionMet = $this->evaluateCondition($processValue, $operator, $compareValue);
-                
+
                 if (!$conditionMet) {
                     throw new \InvalidArgumentException("A condição para transição automática não foi atendida.");
                 }
             }
         }
-        
+
         return true;
     }
 
@@ -172,24 +172,24 @@ class ProcessService
         if (isset($transition->condition) && !empty($transition->condition)) {
             $duration = $transition->condition['duration'];
             $unit = $transition->condition['unit'];
-            
+
             // Obter a data da última transição para este estágio
             $latestTransition = $process->histories()
                 ->where('to_stage_id', $process->current_stage_id)
                 ->orderBy('created_at', 'desc')
                 ->first();
-            
+
             if ($latestTransition) {
                 $minimumDate = $this->calculateMinimumDate($latestTransition->created_at, $duration, $unit);
                 $now = now();
-                
+
                 if ($now->lt($minimumDate)) {
                     $remainingTime = $now->diffForHumans($minimumDate, true);
                     throw new \InvalidArgumentException("Ainda não é possível executar esta transição. Tempo restante: {$remainingTime}.");
                 }
             }
         }
-        
+
         return true;
     }
 
@@ -208,9 +208,9 @@ class ProcessService
             case 'less_than':
                 return $processValue < $compareValue;
             case 'contains':
-                return is_string($processValue) && 
-                       is_string($compareValue) && 
-                       strpos($processValue, $compareValue) !== false;
+                return is_string($processValue) &&
+                    is_string($compareValue) &&
+                    strpos($processValue, $compareValue) !== false;
             default:
                 return false;
         }
@@ -242,16 +242,16 @@ class ProcessService
     {
         // Esta é uma implementação básica. Você pode personalizar com base nas necessidades do negócio.
         // Por exemplo, pode haver estágios específicos que representem o fim do processo.
-        
+
         // Estágios finais geralmente não têm transições de saída
         $hasOutgoingTransitions = $toStage->outgoingTransitions()->exists();
-        
+
         if (!$hasOutgoingTransitions) {
             // Se o estágio não tiver transições de saída, considere como um estágio final
             // e marque o processo como completado
             $process->status = 'completed';
         }
-        
+
         // Outras regras podem ser adicionadas aqui
     }
 }

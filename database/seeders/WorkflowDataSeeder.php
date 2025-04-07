@@ -32,10 +32,30 @@ class WorkflowDataSeeder extends Seeder
         }
 
         $transitions = [
-            ['from_stage_id' => $stageIds[0], 'to_stage_id' => $stageIds[1], 'condition' => json_encode(['field' => 'status', 'value' => 'concluido'])],
-            ['from_stage_id' => $stageIds[1], 'to_stage_id' => $stageIds[2], 'condition' => json_encode(['field' => null, 'value' => null])],
-            ['from_stage_id' => $stageIds[2], 'to_stage_id' => $stageIds[3], 'condition' => json_encode(['field' => 'status', 'value' => 'validado'])],
-            ['from_stage_id' => $stageIds[3], 'to_stage_id' => $stageIds[4], 'condition' => json_encode(['field' => null, 'value' => null])],
+            [
+                'from_stage_id' => $stageIds[0],
+                'to_stage_id' => $stageIds[1],
+                'condition' => '{"unit":"minutes","field":null,"value":null,"duration":"1","operator":"equals","permission":"approve_request"}',
+                'trigger_type' => 'manual',
+            ],
+            [
+                'from_stage_id' => $stageIds[1],
+                'to_stage_id' => $stageIds[2],
+                'condition' => '{"unit":"minutes","field":"status","value":"validado","duration":"1","operator":"equals","permission":null}',
+                'trigger_type' => 'automatic',
+            ],
+            [
+                'from_stage_id' => $stageIds[2],
+                'to_stage_id' => $stageIds[3],
+                'condition' => '{"unit":"minutes","field":"status","value":"verificado","duration":"1","operator":"equals","permission":null}',
+                'trigger_type' => 'automatic',
+            ],
+            [
+                'from_stage_id' => $stageIds[3],
+                'to_stage_id' => $stageIds[4],
+                'condition' => '{"unit":"minutes","field":"status","value":"concluido","duration":"1","operator":"equals","permission":null}',
+                'trigger_type' => 'automatic',
+            ],
         ];
 
         foreach ($transitions as $transition) {
