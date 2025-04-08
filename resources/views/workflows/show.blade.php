@@ -181,7 +181,15 @@
                         </td>
                         <td class="px-6 py-4">
                             @if($transition->condition)
-                            <code class="text-xs bg-gray-100 p-1 rounded">{{ json_encode($transition->condition) }}</code>
+                            <div class="condition-display">
+                                <button type="button" class="text-xs bg-indigo-100 hover:bg-indigo-200 text-indigo-800 px-2 py-1 rounded transition-colors"
+                                    onclick="toggleConditionDetails(this, '{{ json_encode($transition->condition) }}')">
+                                    Ver detalhes
+                                </button>
+                                <div class="condition-details hidden mt-2 p-2 bg-gray-50 rounded text-xs">
+                                    <pre class="whitespace-pre-wrap overflow-x-auto"></pre>
+                                </div>
+                            </div>
                             @else
                             <span class="text-gray-500">Sem condição</span>
                             @endif
@@ -300,5 +308,24 @@
             window.redrawTransitions();
         }, 100);
     });
+
+    function toggleConditionDetails(button, condition) {
+        const detailsDiv = button.nextElementSibling;
+        const preElement = detailsDiv.querySelector('pre');
+
+        if (detailsDiv.classList.contains('hidden')) {
+            try {
+                const parsedCondition = JSON.parse(condition);
+                preElement.textContent = JSON.stringify(parsedCondition, null, 2);
+            } catch (e) {
+                preElement.textContent = 'Erro ao analisar JSON';
+            }
+            detailsDiv.classList.remove('hidden');
+            button.textContent = 'Ocultar detalhes';
+        } else {
+            detailsDiv.classList.add('hidden');
+            button.textContent = 'Ver detalhes';
+        }
+    }
 </script>
 @endsection

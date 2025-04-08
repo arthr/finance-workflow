@@ -2,8 +2,8 @@
 
 namespace App\Domain\Process\Listeners;
 
-use App\Domain\Process\Events\ProcessCreatedEvent;
-use App\Domain\Process\Events\ProcessStageChangedEvent;
+use App\Domain\Process\Events\ProcessCreated;
+use App\Domain\Process\Events\ProcessStageChanged;
 use App\Domain\Webhook\Services\WebhookService;
 
 class SendProcessWebhooks
@@ -15,7 +15,7 @@ class SendProcessWebhooks
         $this->webhookService = $webhookService;
     }
 
-    public function handleProcessCreated(ProcessCreatedEvent $event)
+    public function handleProcessCreated(ProcessCreated $event)
     {
         $process = $event->process;
         $this->webhookService->dispatchWebhooks(
@@ -25,15 +25,15 @@ class SendProcessWebhooks
         );
     }
 
-    public function handleProcessStageChanged(ProcessStageChangedEvent $event)
+    public function handleProcessStageChanged(ProcessStageChanged $event)
     {
         $process = $event->process;
         $this->webhookService->dispatchWebhooks(
             'process.stage_changed',
             [
                 'process' => $process->toArray(),
-                'previous_stage' => $event->previousStage,
-                'current_stage' => $event->currentStage,
+                'previous_stage' => null, // TODO: Implement logic to get the previous stage in ProcessStageChanged
+                'current_stage' => $process->currentStage ? $process->currentStage->toArray() : null,
             ],
             $process->workflow_id
         );
@@ -42,12 +42,12 @@ class SendProcessWebhooks
     public function subscribe($events)
     {
         $events->listen(
-            ProcessCreatedEvent::class,
+            ProcessCreated::class,
             [SendProcessWebhooks::class, 'handleProcessCreated']
         );
 
         $events->listen(
-            ProcessStageChangedEvent::class,
+            ProcessStageChanged::class,
             [SendProcessWebhooks::class, 'handleProcessStageChanged']
         );
     }

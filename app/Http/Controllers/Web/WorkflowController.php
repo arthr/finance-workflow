@@ -232,4 +232,43 @@ class WorkflowController extends Controller implements HasMiddleware
         return redirect()->route('workflows.show', $workflow)
             ->with('success', 'Transição adicionada com sucesso!');
     }
+
+    /**
+     * Remove the specified stage from a workflow.
+     */
+    public function destroyStage($workflowId, $stageId)
+    {
+        $workflow = Workflow::findOrFail($workflowId);
+        $stage = WorkflowStage::where('id', $stageId)
+            ->where('workflow_id', $workflowId)
+            ->firstOrFail();
+
+        // Verificar se existem processos no estágio
+        $activeProcesses = $workflow->processes()
+            ->where('current_stage_id', $stageId)
+            ->count();
+
+        if ($activeProcesses > 0) {
+            return redirect()->route('workflows.show', $workflow)
+                ->with('error', 'Não é possível excluir este estágio pois existem processos ativos nele.');
+        }
+
+        // Verificar se o estágio tem transições associadas
+        $hasTransitions = WorkflowTransition::where('workflow_id', $workflowId)
+            ->where(function ($query) use ($stageId) {
+                $query->where('from_stage_id', $stageId)
+                    ->orWhere('to_stage_id', $stageId);
+            })
+            ->exists();
+
+        if ($hasTransitions) {
+            return redirect()->route('workflows.show', $workflow)
+                ->with('error', 'Não é possível excluir este estágio pois existem transições associadas a ele.');
+        }
+
+        $stage->delete();
+
+        return redirect()->route('workflows.show', $workflow)
+            ->with('success', 'Estágio excluído com sucesso!');
+    }
 }

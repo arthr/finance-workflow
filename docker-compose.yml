@@ -113,6 +113,39 @@ services:
     depends_on:
       - mysql
 
+  # MongoDB para dados de configuração e condições
+  mongodb:
+    image: mongo:latest
+    container_name: workflow-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USERNAME:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD:-root}
+      MONGO_INITDB_DATABASE: ${MONGODB_DATABASE:-workflow}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      - workflow-network
+
+  # Mongo Express para gerenciamento visual do MongoDB
+  mongo-express:
+    image: mongo-express:latest
+    container_name: workflow-mongo-express
+    restart: unless-stopped
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGODB_USERNAME:-root}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGODB_PASSWORD:-root}
+      ME_CONFIG_MONGODB_SERVER: mongodb
+      ME_CONFIG_MONGODB_PORT: 27017
+    ports:
+      - "8081:8081"
+    networks:
+      - workflow-network
+    depends_on:
+      - mongodb
+
 networks:
   workflow-network:
     driver: bridge
@@ -120,3 +153,4 @@ networks:
 volumes:
   mysql-data:
   redis-data:
+  mongodb-data:

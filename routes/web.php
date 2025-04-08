@@ -21,6 +21,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('workflows', WorkflowController::class);
     Route::get('/workflows/{workflow}/stages/create', [WorkflowController::class, 'createStage'])->name('workflows.stages.create');
     Route::post('/workflows/{workflow}/stages', [WorkflowController::class, 'storeStage'])->name('workflows.stages.store');
+    Route::delete('/workflows/{workflow}/stages/{stage}', [WorkflowController::class, 'destroyStage'])->name('workflows.stages.destroy');
     Route::get('/workflows/{workflow}/transitions/create', [WorkflowController::class, 'createTransition'])->name('workflows.transitions.create');
     Route::post('/workflows/{workflow}/transitions', [WorkflowController::class, 'storeTransition'])->name('workflows.transitions.store');
 
@@ -28,7 +29,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('processes', ProcessController::class);
     Route::post('/processes/{process}/move', [ProcessController::class, 'move'])->name('processes.move');
     Route::get('/processes/{process}/history', [ProcessController::class, 'history'])->name('processes.history');
-    
+
     // Webhooks
     Route::resource('webhooks', WebhookController::class);
     Route::get('webhooks/{id}/logs', [WebhookController::class, 'logs'])->name('webhooks.logs');
