@@ -143,9 +143,17 @@ class ProcessService
 
         // Se tivermos dados do processo, podemos validar se a condição seria atendida
         if (isset($transition->condition) && !empty($transition->condition)) {
-            $fieldName = $transition->condition['field'];
-            $operator = $transition->condition['operator'];
-            $compareValue = $transition->condition['value'];
+            $condition = json_decode($transition->condition, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \InvalidArgumentException("Erro ao decodificar a condição da transição automática.");
+            }
+            // Verificar se a condição é válida
+            if (!isset($condition['field'], $condition['operator'], $condition['value'])) {
+                throw new \InvalidArgumentException("Condição inválida para transição automática.");
+            }
+            $fieldName = $condition['field'];
+            $operator = $condition['operator'];
+            $compareValue = $condition['value'];
 
             // Se o campo estiver nos dados do processo
             if (isset($process->data) && is_array($process->data) && array_key_exists($fieldName, $process->data)) {

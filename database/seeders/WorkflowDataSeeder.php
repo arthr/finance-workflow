@@ -19,11 +19,11 @@ class WorkflowDataSeeder extends Seeder
         ]);
 
         $stages = [
-            ['name' => 'Coleta de Dados', 'description' => 'Obter dados do cliente.', 'order' => 0, 'type' => 'manual'],
-            ['name' => 'Validar Dados', 'description' => 'Verificar inconsistências.', 'order' => 1, 'type' => 'manual'],
-            ['name' => 'Verificar Duplicidade', 'description' => 'Checar duplicidade.', 'order' => 2, 'type' => 'automatic'],
-            ['name' => 'Cadastro no Sistema', 'description' => 'Inserir dados validados.', 'order' => 3, 'type' => 'manual'],
-            ['name' => 'Notifica Crédito', 'description' => 'Notificar crédito.', 'order' => 4, 'type' => 'automatic'],
+            ['name' => 'Coleta de Dados', 'description' => 'Obter dados do cliente.', 'order' => 0, 'type' => 'manual', 'config' => '{"delay":"0","field":null,"value":null,"action":"advance","operator":"equals","requires_comment":"0","requires_attachment":"1"}'],
+            ['name' => 'Validar Dados', 'description' => 'Verificar inconsistências.', 'order' => 1, 'type' => 'manual', 'config' => '{"delay":"0","field":null,"value":null,"action":"advance","operator":"equals","requires_comment":"1","requires_attachment":"0"}'],
+            ['name' => 'Verificar Duplicidade', 'description' => 'Checar duplicidade.', 'order' => 2, 'type' => 'automatic', 'config' => '{"delay":"1","field":null,"value":null,"action":"advance","operator":"equals"}'],
+            ['name' => 'Cadastro no Sistema', 'description' => 'Inserir dados validados.', 'order' => 3, 'type' => 'manual', 'config' => '{"delay":"0","field":null,"value":null,"action":"advance","operator":"equals","requires_comment":"1","requires_attachment":"1"}'],
+            ['name' => 'Notifica Crédito', 'description' => 'Notificar crédito.', 'order' => 4, 'type' => 'automatic', 'config' => '{"delay":"1","field":null,"value":null,"action":"notify","operator":"equals"}'],
             ['name' => 'Notificar Solicitante', 'description' => 'Notificar situação do cadastro ao solicitante.', 'order' => 5, 'type' => 'conditional', 'config' => '{"delay":"1","field":"status","value":"duplicado","action":"notify","operator":"equals"}'],
             ['name' => 'Descartar Cadastro', 'description' => 'Excluir dados coletados do cadastro.', 'order' => 6, 'type' => 'automatic', 'config' => '{"delay":"15","field":null,"value":null,"action":"notify","operator":"equals"}'],
         ];
