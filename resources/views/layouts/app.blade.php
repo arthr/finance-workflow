@@ -40,6 +40,9 @@
                         <a href="{{ route('processes.index') }}" class="py-2 px-3 rounded hover:bg-indigo-600 {{ request()->routeIs('processes.*') ? 'bg-indigo-800' : '' }}">
                             <i class="fas fa-tasks mr-1"></i> Processos
                         </a>
+                        <a href="{{ route('webhooks.index') }}" class="py-2 px-3 rounded hover:bg-indigo-600 {{ request()->routeIs('webhooks.*') ? 'bg-indigo-800' : '' }}">
+                            <i class="fas fa-plug mr-1"></i> Webhooks
+                        </a>
                         @can('view users')
                         <a href="{{ route('users.index') }}" class="py-2 px-3 rounded hover:bg-indigo-600 {{ request()->routeIs('users.*') ? 'bg-indigo-800' : '' }}">
                             <i class="fas fa-users mr-1"></i> Usuários
@@ -94,6 +97,9 @@
                 </a>
                 <a href="{{ route('processes.index') }}" class="py-2 {{ request()->routeIs('processes.*') ? 'bg-indigo-900 rounded' : '' }}">
                     <i class="fas fa-tasks block text-lg mb-1"></i> Processos
+                </a>
+                <a href="{{ route('webhooks.index') }}" class="py-2 {{ request()->routeIs('webhooks.*') ? 'bg-indigo-900 rounded' : '' }}">
+                    <i class="fas fa-plug block text-lg mb-1"></i> Webhooks
                 </a>
                 @can('view users')
                 <a href="{{ route('users.index') }}" class="py-2 {{ request()->routeIs('users.*') ? 'bg-indigo-900 rounded' : '' }}">

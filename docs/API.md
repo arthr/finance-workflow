@@ -656,6 +656,233 @@ GET /api/processes/{id}/history
 }
 ```
 
+## Endpoints de Webhook
+
+### Listar todos os webhooks
+**GET /api/webhooks**
+
+Retorna a lista de todos os webhooks configurados.
+
+**Resposta:**
+```json
+[
+  {
+    "id": 1,
+    "name": "Notificação de processo criado",
+    "description": "Envia uma notificação quando um novo processo é criado",
+    "url": "https://exemplo.com/webhook",
+    "secret": "43f28d9e74f7842c0eafb9d0534b9563",
+    "events": ["process.created"],
+    "workflow_id": 1,
+    "is_active": true,
+    "headers": {"X-Custom-Header": "Value"},
+    "retry_count": 0,
+    "max_retries": 3,
+    "created_at": "2025-04-07T14:30:00.000000Z",
+    "updated_at": "2025-04-07T14:30:00.000000Z"
+  }
+]
+```
+
+### Criar webhook
+**POST /api/webhooks**
+
+Cria um novo webhook.
+
+**Corpo da requisição:**
+```json
+{
+  "name": "Notificação de mudança de estágio",
+  "description": "Envia uma notificação quando um processo muda de estágio",
+  "url": "https://exemplo.com/webhook",
+  "secret": "43f28d9e74f7842c0eafb9d0534b9563",
+  "events": ["process.stage_changed"],
+  "workflow_id": 1,
+  "is_active": true,
+  "headers": {"X-Custom-Header": "Value"},
+  "max_retries": 3
+}
+```
+
+**Resposta (201 Created):**
+```json
+{
+  "id": 2,
+  "name": "Notificação de mudança de estágio",
+  "description": "Envia uma notificação quando um processo muda de estágio",
+  "url": "https://exemplo.com/webhook",
+  "secret": "43f28d9e74f7842c0eafb9d0534b9563",
+  "events": ["process.stage_changed"],
+  "workflow_id": 1,
+  "is_active": true,
+  "headers": {"X-Custom-Header": "Value"},
+  "retry_count": 0,
+  "max_retries": 3,
+  "created_at": "2025-04-07T14:35:00.000000Z",
+  "updated_at": "2025-04-07T14:35:00.000000Z"
+}
+```
+
+### Obter webhook por ID
+**GET /api/webhooks/{id}**
+
+Retorna os detalhes de um webhook específico.
+
+**Resposta:**
+```json
+{
+  "id": 1,
+  "name": "Notificação de processo criado",
+  "description": "Envia uma notificação quando um novo processo é criado",
+  "url": "https://exemplo.com/webhook",
+  "secret": "43f28d9e74f7842c0eafb9d0534b9563",
+  "events": ["process.created"],
+  "workflow_id": 1,
+  "is_active": true,
+  "headers": {"X-Custom-Header": "Value"},
+  "retry_count": 0,
+  "max_retries": 3,
+  "created_at": "2025-04-07T14:30:00.000000Z",
+  "updated_at": "2025-04-07T14:30:00.000000Z"
+}
+```
+
+### Atualizar webhook
+**PUT /api/webhooks/{id}**
+
+Atualiza um webhook existente.
+
+**Corpo da requisição:**
+```json
+{
+  "name": "Notificação de processo criado (atualizado)",
+  "is_active": false
+}
+```
+
+**Resposta:**
+```json
+{
+  "id": 1,
+  "name": "Notificação de processo criado (atualizado)",
+  "description": "Envia uma notificação quando um novo processo é criado",
+  "url": "https://exemplo.com/webhook",
+  "secret": "43f28d9e74f7842c0eafb9d0534b9563",
+  "events": ["process.created"],
+  "workflow_id": 1,
+  "is_active": false,
+  "headers": {"X-Custom-Header": "Value"},
+  "retry_count": 0,
+  "max_retries": 3,
+  "created_at": "2025-04-07T14:30:00.000000Z",
+  "updated_at": "2025-04-07T14:40:00.000000Z"
+}
+```
+
+### Excluir webhook
+**DELETE /api/webhooks/{id}**
+
+Remove um webhook.
+
+**Resposta (200 OK):**
+```json
+{
+  "message": "Webhook deleted successfully"
+}
+```
+
+### Obter logs de webhook
+**GET /api/webhooks/{id}/logs**
+
+Retorna os logs de execução de um webhook específico.
+
+**Resposta:**
+```json
+[
+  {
+    "id": 1,
+    "webhook_id": 1,
+    "event_name": "process.created",
+    "payload": {"id": 42, "title": "Novo processo", "workflow_id": 1},
+    "status_code": 200,
+    "response": "{\"success\":true}",
+    "success": true,
+    "attempt": 1,
+    "created_at": "2025-04-07T14:32:00.000000Z",
+    "updated_at": "2025-04-07T14:32:00.000000Z"
+  }
+]
+```
+
+## Formato dos Payloads de Webhook
+
+Os webhooks enviam os seguintes formatos de payload para diferentes eventos:
+
+### process.created
+```json
+{
+  "event": "process.created",
+  "data": {
+    "id": 42,
+    "title": "Novo processo",
+    "description": "Descrição do processo",
+    "workflow_id": 1,
+    "current_stage_id": 1,
+    "responsible_id": 5,
+    "created_at": "2025-04-07T14:30:00.000000Z",
+    "updated_at": "2025-04-07T14:30:00.000000Z"
+  },
+  "timestamp": "2025-04-07T14:30:01.000000Z"
+}
+```
+
+### process.stage_changed
+```json
+{
+  "event": "process.stage_changed",
+  "data": {
+    "process": {
+      "id": 42,
+      "title": "Novo processo",
+      "description": "Descrição do processo",
+      "workflow_id": 1,
+      "current_stage_id": 2,
+      "responsible_id": 5,
+      "created_at": "2025-04-07T14:30:00.000000Z",
+      "updated_at": "2025-04-07T14:35:00.000000Z"
+    },
+    "previous_stage": {
+      "id": 1,
+      "name": "Estágio inicial"
+    },
+    "current_stage": {
+      "id": 2,
+      "name": "Em andamento"
+    }
+  },
+  "timestamp": "2025-04-07T14:35:01.000000Z"
+}
+```
+
+## Verificação de Assinatura
+
+Para verificar a autenticidade de um webhook, recomendamos validar a assinatura incluída no cabeçalho `X-Webhook-Signature`. A assinatura é gerada usando HMAC-SHA256 com o secret do webhook como chave e o payload JSON como dados.
+
+Exemplo em PHP:
+```php
+$payload = file_get_contents('php://input');
+$signature = $_SERVER['HTTP_X_WEBHOOK_SIGNATURE'];
+$secret = 'seu_webhook_secret';
+
+$calculatedSignature = hash_hmac('sha256', $payload, $secret);
+
+if (hash_equals($calculatedSignature, $signature)) {
+    // Webhook é autêntico
+} else {
+    // Webhook pode ser fraudulento
+}
+```
+
 ## Códigos de Erro
 
 A API pode retornar os seguintes códigos de erro:

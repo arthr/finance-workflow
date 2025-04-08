@@ -241,6 +241,7 @@ A comunicação entre os serviços é feita de forma assíncrona usando o Redis 
 1. **Eventos**: Disparados quando ocorrem mudanças significativas (ex: mudança de estágio).
 2. **Jobs**: Processamento em background de tarefas demoradas (ex: notificações em massa).
 3. **Broadcasts**: Notificações em tempo real para atualizações de UI (via WebSockets).
+4. **Webhooks**: Notificações HTTP para sistemas externos sobre eventos importantes do workflow.
 
 ## APIs REST
 
@@ -250,6 +251,18 @@ O sistema oferece APIs REST para integração com sistemas externos:
 2. **API de Processos**: Criar, atualizar e consultar processos.
 3. **API de Usuários**: Gerenciar usuários e permissões.
 4. **API de Relatórios**: Obter estatísticas e relatórios sobre processos.
+5. **API de Webhooks**: Gerenciar integrações via webhooks para sistemas externos.
+
+## Serviço de Webhooks
+
+O sistema implementa um serviço completo de webhooks para integração com sistemas externos:
+
+1. **Registro de Endpoints**: Permite que sistemas externos registrem URLs para receber notificações.
+2. **Autenticação por Assinatura**: HMAC-SHA256 para verificar a autenticidade das requisições.
+3. **Retry com Backoff Exponencial**: Tentativas automáticas em caso de falha com intervalo crescente.
+4. **Logs de Execução**: Histórico completo de todas as notificações enviadas.
+5. **Filtragem por Evento**: Possibilidade de assinar apenas eventos específicos.
+6. **Filtragem por Workflow**: Receber notificações apenas de workflows específicos.
 
 ## Monitoramento e Logs
 
@@ -281,4 +294,4 @@ Para otimizar a performance, o sistema implementa múltiplas camadas de cache:
 
 1. **Otimização de Queries**: Índices e consultas eficientes.
 2. **Resource Pooling**: Pool de conexões para banco de dados e Redis.
-3. **Processamento em Background**: Tarefas pesadas são executadas em background. 
+3. **Processamento em Background**: Tarefas pesadas são executadas em background.

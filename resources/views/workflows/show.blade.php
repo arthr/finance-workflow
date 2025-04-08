@@ -109,6 +109,10 @@
             </button>
             <span class="text-xs text-gray-500">(Necessário ter ao menos 2 estágios)</span>
             @endif
+
+            <a href="{{ route('webhooks.create', ['workflow_id' => $workflow->id]) }}" class="inline-flex items-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700 active:bg-purple-700 focus:outline-none focus:border-purple-700 focus:ring ring-purple-300 disabled:opacity-25 transition">
+                <i class="fas fa-plug mr-2"></i> Configurar Webhook
+            </a>
         </div>
     </div>
 

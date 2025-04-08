@@ -13,6 +13,7 @@
   - [ ] Preparar container MongoDB para armazenar dados transacionais.
     - [ ] Armazenar config dos estágios (stages)
     - [ ] Armazenar conditions das transições (transitions)
+- [x] Implementar funcionalidade de webhooks
 
 ### Testes
 - [ ] Escrever testes unitários para os novos serviços:

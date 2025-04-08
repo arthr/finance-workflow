@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\WorkflowController;
 use App\Http\Controllers\API\ProcessController;
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\WebhookController;
+use App\Http\Controllers\WebhookLogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,4 +39,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('processes', ProcessController::class);
     Route::post('processes/{id}/move', [ProcessController::class, 'moveToNextStage']);
     Route::get('processes/{id}/history', [ProcessController::class, 'history']);
+
+    /*
+    * Webhook Routes
+    */
+    Route::prefix('webhooks')->group(function () {
+        Route::get('/', [WebhookController::class, 'index']);
+        Route::post('/', [WebhookController::class, 'store']);
+        Route::get('/{id}', [WebhookController::class, 'show']);
+        Route::put('/{id}', [WebhookController::class, 'update']);
+        Route::delete('/{id}', [WebhookController::class, 'destroy']);
+        Route::get('/{id}/logs', [WebhookController::class, 'logs']);
+        
+        // Nova rota para detalhes de log específico
+        Route::get('/logs/{id}', [WebhookLogController::class, 'show']);
+    });
 });
