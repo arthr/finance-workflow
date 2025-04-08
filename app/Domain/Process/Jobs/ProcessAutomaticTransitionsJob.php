@@ -62,9 +62,19 @@ class ProcessAutomaticTransitionsJob implements ShouldQueue
             return;
         }
 
-        $fieldName = $transition->condition['field'] ?? null;
-        $operator = $transition->condition['operator'] ?? null;
-        $compareValue = $transition->condition['value'] ?? null;
+        $condition = json_decode($transition->condition, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            Log::error('Erro ao decodificar condição JSON', [
+                'process_id' => $process->id,
+                'transition_id' => $transition->id,
+                'error' => json_last_error_msg()
+            ]);
+            return;
+        }
+
+        $fieldName = $condition['field'] ?? null;
+        $operator = $condition['operator'] ?? null;
+        $compareValue = $condition['value'] ?? null;
 
         if (!$fieldName || !$operator || !$compareValue) {
             return;
@@ -79,12 +89,6 @@ class ProcessAutomaticTransitionsJob implements ShouldQueue
         $conditionMet = $this->evaluateCondition($processValue, $operator, $compareValue);
 
         if ($conditionMet) {
-            Log::info('Executando transição automática', [
-                'process_id' => $process->id,
-                'from_stage' => $process->current_stage_id,
-                'to_stage' => $transition->to_stage_id
-            ]);
-
             $processService->moveToNextStage($process, [
                 'to_stage_id' => $transition->to_stage_id,
                 'comments' => 'Transição automática executada pelo sistema'
@@ -107,9 +111,9 @@ class ProcessAutomaticTransitionsJob implements ShouldQueue
             case 'less_than':
                 return $processValue < $compareValue;
             case 'contains':
-                return is_string($processValue) && 
-                       is_string($compareValue) && 
-                       strpos($processValue, $compareValue) !== false;
+                return is_string($processValue) &&
+                    is_string($compareValue) &&
+                    strpos($processValue, $compareValue) !== false;
             default:
                 return false;
         }
