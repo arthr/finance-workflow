@@ -26,12 +26,13 @@ class ProcessAutomaticTransitionsJob implements ShouldQueue
      */
     public function handle(): void
     {
+        $log = Log::channel('process');
         $processService = new ProcessService();
         $processes = Process::with(['currentStage.outgoingTransitions', 'workflow'])
             ->where('status', 'active')
             ->get();
 
-        Log::info('Processando transições automáticas', ['total_processes' => $processes->count()]);
+        $log->info('Processando transições automáticas', ['total_processes' => $processes->count()]);
 
         foreach ($processes as $process) {
             $automaticTransitions = $process->currentStage->outgoingTransitions()
@@ -42,7 +43,7 @@ class ProcessAutomaticTransitionsJob implements ShouldQueue
                 try {
                     $this->processAutomaticTransition($processService, $process, $transition);
                 } catch (\Exception $e) {
-                    Log::error('Erro ao processar transição automática', [
+                    $log->error('Erro ao processar transição automática', [
                         'process_id' => $process->id,
                         'transition_id' => $transition->id,
                         'error' => $e->getMessage()

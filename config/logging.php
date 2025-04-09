@@ -51,6 +51,19 @@ return [
     */
 
     'channels' => [
+        'workflow' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/workflow.log'),
+            'level' => 'debug',
+            'days' => 3,
+        ],
+
+        'process' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/process.log'),
+            'level' => 'debug',
+            'days' => 3,
+        ],
 
         'stack' => [
             'driver' => 'stack',
@@ -89,7 +102,7 @@ return [
             'handler_with' => [
                 'host' => env('PAPERTRAIL_URL'),
                 'port' => env('PAPERTRAIL_PORT'),
-                'connectionString' => 'tls://'.env('PAPERTRAIL_URL').':'.env('PAPERTRAIL_PORT'),
+                'connectionString' => 'tls://' . env('PAPERTRAIL_URL') . ':' . env('PAPERTRAIL_PORT'),
             ],
             'processors' => [PsrLogMessageProcessor::class],
         ],

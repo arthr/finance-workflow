@@ -184,7 +184,7 @@ Para gerenciar uma aplicação escalável, precisamos de monitoramento adequado:
 
 ```php
 // Exemplo de log estruturado
-Log::info('Process stage changed', [
+Log::channel('process')->info('Process stage changed', [
     'process_id' => $process->id,
     'workflow_id' => $process->workflow_id,
     'from_stage' => $fromStageId,

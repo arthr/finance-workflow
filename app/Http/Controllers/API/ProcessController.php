@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Domain\Process\Models\Process;
 use App\Domain\Process\Services\ProcessService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ProcessController extends Controller
 {
@@ -124,7 +125,7 @@ class ProcessController extends Controller
             return response()->json(['error' => $e->getMessage()], 422);
         } catch (\Exception $e) {
             // Captura qualquer outra exceção genérica
-            \Illuminate\Support\Facades\Log::error('API - Erro ao mover processo: ' . $e->getMessage(), [
+            Log::channel('process')->error('API - Erro ao mover processo: ' . $e->getMessage(), [
                 'process_id' => $id,
                 'to_stage_id' => $request->input('to_stage_id'),
                 'user_id' => Auth::id(),

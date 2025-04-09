@@ -7,6 +7,7 @@ use App\Domain\Workflow\Models\WorkflowStage;
 use App\Domain\Workflow\Models\WorkflowTransition;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class WorkflowService
 {
@@ -181,7 +182,7 @@ class WorkflowService
 
         // Se houver processos ativos neste estágio, registre um log de aviso
         if ($activeProcessesCount > 0) {
-            \Illuminate\Support\Facades\Log::warning('Nova transição criada que afeta processos ativos', [
+            Log::channel('workflow')->warning('Nova transição criada que afeta processos ativos', [
                 'from_stage_id' => $fromStage->id,
                 'to_stage_id' => $toStage->id,
                 'active_processes' => $activeProcessesCount,

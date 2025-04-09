@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use App\Domain\Process\Events\ProcessCreated;
 use App\Domain\Process\Events\ProcessStageChanged;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ProcessService
 {
@@ -100,7 +101,7 @@ class ProcessService
             event(new ProcessStageChanged($process, $fromStageId));
 
             // 9. Registrar log para análise
-            \Illuminate\Support\Facades\Log::info('Processo movido para novo estágio', [
+            Log::channel('process')->info('Processo movido para novo estágio', [
                 'process_id' => $process->id,
                 'workflow_id' => $process->workflow_id,
                 'from_stage' => $fromStageId,

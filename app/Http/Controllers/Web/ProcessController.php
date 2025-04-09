@@ -11,15 +11,17 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
-
+use Illuminate\Support\Facades\Log;
 
 class ProcessController extends Controller implements HasMiddleware
 {
     protected $processService;
+    protected $logger;
 
     public function __construct(ProcessService $processService)
     {
         $this->processService = $processService;
+        $this->logger = Log::channel('process');
     }
 
     public static function middleware(): array
@@ -208,7 +210,7 @@ class ProcessController extends Controller implements HasMiddleware
                 ->with('errorType', 'validation');
         } catch (\Exception $e) {
             // Captura qualquer outra exceção genérica
-            \Illuminate\Support\Facades\Log::error('Erro ao mover processo: ' . $e->getMessage(), [
+            $this->logger->error('Erro ao mover processo: ' . $e->getMessage(), [
                 'process_id' => $process->id,
                 'to_stage_id' => $validated['to_stage_id'],
                 'user_id' => Auth::id(),
@@ -245,7 +247,7 @@ class ProcessController extends Controller implements HasMiddleware
             return redirect()->route('processes.index')
                 ->with('success', 'Processo excluído com sucesso!');
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Erro ao excluir processo: ' . $e->getMessage(), [
+            $this->logger->error('Erro ao excluir processo: ' . $e->getMessage(), [
                 'process_id' => $process->id,
                 'user_id' => Auth::id(),
                 'exception' => $e

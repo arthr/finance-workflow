@@ -27,12 +27,13 @@ class ProcessScheduledTransitionsJob implements ShouldQueue
      */
     public function handle(): void
     {
+        $log = Log::channel('process');
         $processService = new ProcessService();
         $processes = Process::with(['currentStage.outgoingTransitions', 'workflow', 'histories'])
             ->where('status', 'active')
             ->get();
 
-        Log::info('Processando transições agendadas', ['total_processes' => $processes->count()]);
+        $log->info('Processando transições agendadas', ['total_processes' => $processes->count()]);
 
         foreach ($processes as $process) {
             $scheduledTransitions = $process->currentStage->outgoingTransitions()
@@ -43,7 +44,7 @@ class ProcessScheduledTransitionsJob implements ShouldQueue
                 try {
                     $this->processScheduledTransition($processService, $process, $transition);
                 } catch (\Exception $e) {
-                    Log::error('Erro ao processar transição agendada', [
+                    $log->error('Erro ao processar transição agendada', [
                         'process_id' => $process->id,
                         'transition_id' => $transition->id,
                         'error' => $e->getMessage()
