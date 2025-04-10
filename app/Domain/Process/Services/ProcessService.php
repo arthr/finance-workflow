@@ -144,7 +144,10 @@ class ProcessService
 
         // Se tivermos dados do processo, podemos validar se a condição seria atendida
         if (isset($transition->condition) && !empty($transition->condition)) {
-            $condition = json_decode($transition->condition, true);
+            $condition = is_string($transition->condition)
+                ? json_decode($transition->condition, true)
+                : $transition->condition;
+
             if (json_last_error() !== JSON_ERROR_NONE) {
                 throw new \InvalidArgumentException("Erro ao decodificar a condição da transição automática.");
             }

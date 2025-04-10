@@ -7,6 +7,7 @@ use Illuminate\Foundation\Queue\Queueable;
 use App\Domain\Process\Models\Process;
 use App\Domain\Workflow\Models\WorkflowTransition;
 use App\Domain\Process\Services\ProcessService;
+use App\Domain\Workflow\Models\WorkflowStage;
 use Illuminate\Support\Facades\Log;
 
 class ProcessAutomaticTransitionsJob implements ShouldQueue
@@ -28,16 +29,43 @@ class ProcessAutomaticTransitionsJob implements ShouldQueue
     {
         $log = Log::channel('process');
         $processService = new ProcessService();
-        $processes = Process::with(['currentStage.outgoingTransitions', 'workflow'])
+
+        // Busca IDs de estágios que possuem transições automáticas
+        $stagesWithAutoTransitions = WorkflowStage::whereHas('outgoingTransitions', function ($query) {
+            $query->where('trigger_type', 'automatic');
+        })->pluck('id')->toArray();
+
+        // Se não existirem estágios com transições automáticas, não há nada a fazer
+        if (empty($stagesWithAutoTransitions)) {
+            $log->info('Nenhum estágio com transições automáticas encontrado');
+            return;
+        }
+
+        $log->info('Estágios com transições', [
+            'estagios_com_transicoes' => $stagesWithAutoTransitions
+        ]);
+
+        // Busca apenas processos ativos que estão em estágios com transições automáticas
+        // e que não estão em estágios finais (estágios finais não têm transições de saída)
+        $processes = Process::with(['currentStage.outgoingTransitions' => function ($query) {
+            $query->where('trigger_type', 'automatic');
+        }, 'workflow'])
             ->where('status', 'active')
+            ->whereIn('current_stage_id', $stagesWithAutoTransitions)
             ->get();
 
-        $log->info('Processando transições automáticas', ['total_processes' => $processes->count()]);
+        $log->info('Processando transições automáticas', [
+            'total_processes' => $processes->count(),
+            'estagios_com_transicoes' => count($stagesWithAutoTransitions)
+        ]);
 
         foreach ($processes as $process) {
-            $automaticTransitions = $process->currentStage->outgoingTransitions()
-                ->where('trigger_type', 'automatic')
-                ->get();
+            $automaticTransitions = $process->currentStage->outgoingTransitions;
+
+            // Se não houver transições automáticas, pula esse processo
+            if ($automaticTransitions->isEmpty()) {
+                continue;
+            }
 
             foreach ($automaticTransitions as $transition) {
                 try {
@@ -58,14 +86,18 @@ class ProcessAutomaticTransitionsJob implements ShouldQueue
      */
     private function processAutomaticTransition(ProcessService $processService, Process $process, WorkflowTransition $transition)
     {
+        $log = Log::channel('process');
         // Verifica se as condições automáticas são atendidas
         if (!$transition->condition || empty($transition->condition)) {
             return;
         }
 
-        $condition = json_decode($transition->condition, true);
+        $condition = is_string($transition->condition)
+            ? json_decode($transition->condition, true)
+            : $transition->condition;
+
         if (json_last_error() !== JSON_ERROR_NONE) {
-            Log::error('Erro ao decodificar condição JSON', [
+            $log->error('Erro ao decodificar condição JSON', [
                 'process_id' => $process->id,
                 'transition_id' => $transition->id,
                 'error' => json_last_error_msg()

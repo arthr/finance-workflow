@@ -56,6 +56,7 @@ return [
             'path' => storage_path('logs/workflow.log'),
             'level' => 'debug',
             'days' => 3,
+            'replace_placeholders' => true,
         ],
 
         'process' => [
@@ -63,6 +64,7 @@ return [
             'path' => storage_path('logs/process.log'),
             'level' => 'debug',
             'days' => 3,
+            'replace_placeholders' => true,
         ],
 
         'stack' => [

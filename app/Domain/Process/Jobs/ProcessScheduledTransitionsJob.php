@@ -29,16 +29,39 @@ class ProcessScheduledTransitionsJob implements ShouldQueue
     {
         $log = Log::channel('process');
         $processService = new ProcessService();
-        $processes = Process::with(['currentStage.outgoingTransitions', 'workflow', 'histories'])
+
+        // Busca IDs de estágios que possuem transições agendadas
+        $stagesWithScheduledTransitions = \App\Domain\Workflow\Models\WorkflowStage::whereHas('outgoingTransitions', function ($query) {
+            $query->where('trigger_type', 'scheduled');
+        })->pluck('id')->toArray();
+
+        // Se não existirem estágios com transições agendadas, não há nada a fazer
+        if (empty($stagesWithScheduledTransitions)) {
+            $log->info('Nenhum estágio com transições agendadas encontrado');
+            return;
+        }
+
+        // Busca apenas processos ativos que estão em estágios com transições agendadas
+        // e que não estão em estágios finais
+        $processes = Process::with(['currentStage.outgoingTransitions' => function ($query) {
+            $query->where('trigger_type', 'scheduled');
+        }, 'workflow', 'histories'])
             ->where('status', 'active')
+            ->whereIn('current_stage_id', $stagesWithScheduledTransitions)
             ->get();
 
-        $log->info('Processando transições agendadas', ['total_processes' => $processes->count()]);
+        $log->info('Processando transições agendadas', [
+            'total_processes' => $processes->count(),
+            'estagios_com_transicoes' => count($stagesWithScheduledTransitions)
+        ]);
 
         foreach ($processes as $process) {
-            $scheduledTransitions = $process->currentStage->outgoingTransitions()
-                ->where('trigger_type', 'scheduled')
-                ->get();
+            $scheduledTransitions = $process->currentStage->outgoingTransitions;
+
+            // Se não houver transições agendadas, pula esse processo
+            if ($scheduledTransitions->isEmpty()) {
+                continue;
+            }
 
             foreach ($scheduledTransitions as $transition) {
                 try {
